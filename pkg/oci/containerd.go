@@ -357,106 +357,106 @@ func createFilters(mirroredRegistries []url.URL) (string, string) {
 // https://github.com/containerd/containerd/blob/main/docs/cri/config.md#registry-configuration
 // https://github.com/containerd/containerd/blob/main/docs/hosts.md#registry-configuration---examples
 func AddMirrorConfiguration(ctx context.Context, fs afero.Fs, configPath string, mirroredRegistries, mirrorTargets []url.URL, resolveTags, prependExisting bool, username, password string) error {
-	log := logr.FromContextOrDiscard(ctx)
-	err := validateRegistries(mirroredRegistries)
-	if err != nil {
-		return err
-	}
-	err = fs.MkdirAll(configPath, 0o755)
-	if err != nil {
-		return err
-	}
-	err = backupConfig(log, fs, configPath)
-	if err != nil {
-		return err
-	}
-	err = clearConfig(fs, configPath)
-	if err != nil {
-		return err
-	}
+	// log := logr.FromContextOrDiscard(ctx)
+	// err := validateRegistries(mirroredRegistries)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = fs.MkdirAll(configPath, 0o755)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = backupConfig(log, fs, configPath)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = clearConfig(fs, configPath)
+	// if err != nil {
+	// 	return err
+	// }
 
-	capabilities := []string{"pull"}
-	if resolveTags {
-		capabilities = append(capabilities, "resolve")
-	}
-	if len(mirroredRegistries) == 0 {
-		mirroredRegistries = append(mirroredRegistries, url.URL{})
-	}
+	// capabilities := []string{"pull"}
+	// if resolveTags {
+	// 	capabilities = append(capabilities, "resolve")
+	// }
+	// if len(mirroredRegistries) == 0 {
+	// 	mirroredRegistries = append(mirroredRegistries, url.URL{})
+	// }
 
-	// Write mirror configuration
-	for _, mirroredRegistry := range mirroredRegistries {
-		templatedHosts, err := templateHosts(mirroredRegistry, mirrorTargets, capabilities, username, password)
-		if err != nil {
-			return err
-		}
-		if prependExisting {
-			existingHosts, err := existingHosts(fs, configPath, mirroredRegistry)
-			if err != nil {
-				return err
-			}
-			if existingHosts != "" {
-				templatedHosts = templatedHosts + "\n\n" + existingHosts
-			}
-			log.Info("prepending to existing Containerd mirror configuration", "registry", mirroredRegistry.String())
-		}
-		hostComp := mirroredRegistry.Host
-		if hostComp == "" {
-			hostComp = "_default"
-		}
-		fp := path.Join(configPath, hostComp, "hosts.toml")
-		err = fs.MkdirAll(path.Dir(fp), 0o755)
-		if err != nil {
-			return err
-		}
-		err = afero.WriteFile(fs, fp, []byte(templatedHosts), 0o644)
-		if err != nil {
-			return err
-		}
-		log.Info("added Containerd mirror configuration", "registry", mirroredRegistry.String(), "path", fp)
-	}
+	// // Write mirror configuration
+	// for _, mirroredRegistry := range mirroredRegistries {
+	// 	templatedHosts, err := templateHosts(mirroredRegistry, mirrorTargets, capabilities, username, password)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	if prependExisting {
+	// 		existingHosts, err := existingHosts(fs, configPath, mirroredRegistry)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 		if existingHosts != "" {
+	// 			templatedHosts = templatedHosts + "\n\n" + existingHosts
+	// 		}
+	// 		log.Info("prepending to existing Containerd mirror configuration", "registry", mirroredRegistry.String())
+	// 	}
+	// 	hostComp := mirroredRegistry.Host
+	// 	if hostComp == "" {
+	// 		hostComp = "_default"
+	// 	}
+	// 	fp := path.Join(configPath, hostComp, "hosts.toml")
+	// 	err = fs.MkdirAll(path.Dir(fp), 0o755)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	err = afero.WriteFile(fs, fp, []byte(templatedHosts), 0o644)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	log.Info("added Containerd mirror configuration", "registry", mirroredRegistry.String(), "path", fp)
+	// }
 	return nil
 }
 
 func CleanupMirrorConfiguration(ctx context.Context, fs afero.Fs, configPath string) error {
-	log := logr.FromContextOrDiscard(ctx)
+	// log := logr.FromContextOrDiscard(ctx)
 
-	// If backup directory does not exist it means mirrors was never configured or cleanup has already run.
-	backupDirPath := path.Join(configPath, backupDir)
-	ok, err := afero.DirExists(fs, backupDirPath)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		log.Info("skipping cleanup because backup directory does not exist")
-		return nil
-	}
+	// // If backup directory does not exist it means mirrors was never configured or cleanup has already run.
+	// backupDirPath := path.Join(configPath, backupDir)
+	// ok, err := afero.DirExists(fs, backupDirPath)
+	// if err != nil {
+	// 	return err
+	// }
+	// if !ok {
+	// 	log.Info("skipping cleanup because backup directory does not exist")
+	// 	return nil
+	// }
 
-	// Remove everything except _backup
-	err = clearConfig(fs, configPath)
-	if err != nil {
-		return err
-	}
+	// // Remove everything except _backup
+	// err = clearConfig(fs, configPath)
+	// if err != nil {
+	// 	return err
+	// }
 
-	// Move content from backup directory
-	files, err := afero.ReadDir(fs, backupDirPath)
-	if err != nil {
-		return err
-	}
-	for _, fi := range files {
-		oldPath := path.Join(backupDirPath, fi.Name())
-		newPath := path.Join(configPath, fi.Name())
-		err := fs.Rename(oldPath, newPath)
-		if err != nil {
-			return err
-		}
-		log.Info("recovering Containerd host configuration", "path", oldPath)
-	}
+	// // Move content from backup directory
+	// files, err := afero.ReadDir(fs, backupDirPath)
+	// if err != nil {
+	// 	return err
+	// }
+	// for _, fi := range files {
+	// 	oldPath := path.Join(backupDirPath, fi.Name())
+	// 	newPath := path.Join(configPath, fi.Name())
+	// 	err := fs.Rename(oldPath, newPath)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	log.Info("recovering Containerd host configuration", "path", oldPath)
+	// }
 
-	// Remove backup directory to indicate that cleanup has been run.
-	err = fs.RemoveAll(backupDirPath)
-	if err != nil {
-		return err
-	}
+	// // Remove backup directory to indicate that cleanup has been run.
+	// err = fs.RemoveAll(backupDirPath)
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
