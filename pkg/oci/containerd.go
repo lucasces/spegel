@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -23,10 +22,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
-	"github.com/pelletier/go-toml/v2"
-	tomlu "github.com/pelletier/go-toml/v2/unstable"
 	"github.com/spf13/afero"
-	"google.golang.org/grpc"
 	utilversion "k8s.io/apimachinery/pkg/util/version"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1"
 )
@@ -83,45 +79,45 @@ func (c *Containerd) Name() string {
 }
 
 func (c *Containerd) Verify(ctx context.Context) error {
-	log := logr.FromContextOrDiscard(ctx)
-	client, err := c.Client()
-	if err != nil {
-		return err
-	}
-	ok, err := client.IsServing(ctx)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return errors.New("could not reach Containerd service")
-	}
+	// log := logr.FromContextOrDiscard(ctx)
+	// client, err := c.Client()
+	// if err != nil {
+	// 	return err
+	// }
+	// ok, err := client.IsServing(ctx)
+	// if err != nil {
+	// 	return err
+	// }
+	// if !ok {
+	// 	return errors.New("could not reach Containerd service")
+	// }
 
-	grpcConn, ok := client.Conn().(*grpc.ClientConn)
-	if !ok {
-		return errors.New("client connection is not grpc")
-	}
-	srv := runtimeapi.NewRuntimeServiceClient(grpcConn)
-	versionResp, err := srv.Version(ctx, &runtimeapi.VersionRequest{})
-	if err != nil {
-		return err
-	}
-	ok, err = canVerifyContainerdConfiguration(versionResp.RuntimeVersion)
-	if err != nil {
-		return fmt.Errorf("could not check Containerd version %s: %w", versionResp.RuntimeVersion, err)
-	}
-	if !ok {
-		log.Info("skipping verification of Containerd configuration", "version", versionResp.RuntimeVersion)
-		return nil
-	}
+	// grpcConn, ok := client.Conn().(*grpc.ClientConn)
+	// if !ok {
+	// 	return errors.New("client connection is not grpc")
+	// }
+	// srv := runtimeapi.NewRuntimeServiceClient(grpcConn)
+	// versionResp, err := srv.Version(ctx, &runtimeapi.VersionRequest{})
+	// if err != nil {
+	// 	return err
+	// }
+	// ok, err = canVerifyContainerdConfiguration(versionResp.RuntimeVersion)
+	// if err != nil {
+	// 	return fmt.Errorf("could not check Containerd version %s: %w", versionResp.RuntimeVersion, err)
+	// }
+	// if !ok {
+	// 	log.Info("skipping verification of Containerd configuration", "version", versionResp.RuntimeVersion)
+	// 	return nil
+	// }
 
-	statusResp, err := srv.Status(ctx, &runtimeapi.StatusRequest{Verbose: true})
-	if err != nil {
-		return err
-	}
-	err = verifyStatusResponse(statusResp, c.registryConfigPath)
-	if err != nil {
-		return err
-	}
+	// statusResp, err := srv.Status(ctx, &runtimeapi.StatusRequest{Verbose: true})
+	// if err != nil {
+	// 	return err
+	// }
+	// err = verifyStatusResponse(statusResp, c.registryConfigPath)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -481,49 +477,49 @@ func validateRegistries(urls []url.URL) error {
 }
 
 func backupConfig(log logr.Logger, fs afero.Fs, configPath string) error {
-	backupDirPath := path.Join(configPath, backupDir)
-	ok, err := afero.DirExists(fs, backupDirPath)
-	if err != nil {
-		return err
-	}
-	if ok {
-		return nil
-	}
-	files, err := afero.ReadDir(fs, configPath)
-	if err != nil {
-		return err
-	}
-	err = fs.MkdirAll(backupDirPath, 0o755)
-	if err != nil {
-		return err
-	}
-	for _, fi := range files {
-		oldPath := path.Join(configPath, fi.Name())
-		newPath := path.Join(backupDirPath, fi.Name())
-		err := fs.Rename(oldPath, newPath)
-		if err != nil {
-			return err
-		}
-		log.Info("backing up Containerd host configuration", "path", oldPath)
-	}
+	// backupDirPath := path.Join(configPath, backupDir)
+	// ok, err := afero.DirExists(fs, backupDirPath)
+	// if err != nil {
+	// 	return err
+	// }
+	// if ok {
+	// 	return nil
+	// }
+	// files, err := afero.ReadDir(fs, configPath)
+	// if err != nil {
+	// 	return err
+	// }
+	// err = fs.MkdirAll(backupDirPath, 0o755)
+	// if err != nil {
+	// 	return err
+	// }
+	// for _, fi := range files {
+	// 	oldPath := path.Join(configPath, fi.Name())
+	// 	newPath := path.Join(backupDirPath, fi.Name())
+	// 	err := fs.Rename(oldPath, newPath)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	log.Info("backing up Containerd host configuration", "path", oldPath)
+	// }
 	return nil
 }
 
 func clearConfig(fs afero.Fs, configPath string) error {
-	files, err := afero.ReadDir(fs, configPath)
-	if err != nil {
-		return err
-	}
-	for _, fi := range files {
-		if fi.Name() == backupDir {
-			continue
-		}
-		filePath := path.Join(configPath, fi.Name())
-		err := fs.RemoveAll(filePath)
-		if err != nil {
-			return err
-		}
-	}
+	// files, err := afero.ReadDir(fs, configPath)
+	// if err != nil {
+	// 	return err
+	// }
+	// for _, fi := range files {
+	// 	if fi.Name() == backupDir {
+	// 		continue
+	// 	}
+	// 	filePath := path.Join(configPath, fi.Name())
+	// 	err := fs.RemoveAll(filePath)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 	return nil
 }
 
@@ -577,55 +573,56 @@ type hostFile struct {
 }
 
 func existingHosts(fs afero.Fs, configPath string, mirroredRegistry url.URL) (string, error) {
-	fp := path.Join(configPath, backupDir, mirroredRegistry.Host, "hosts.toml")
-	b, err := afero.ReadFile(fs, fp)
-	if errors.Is(err, afero.ErrFileNotFound) {
-		return "", nil
-	}
-	if err != nil {
-		return "", err
-	}
+	// fp := path.Join(configPath, backupDir, mirroredRegistry.Host, "hosts.toml")
+	// b, err := afero.ReadFile(fs, fp)
+	// if errors.Is(err, afero.ErrFileNotFound) {
+	// 	return "", nil
+	// }
+	// if err != nil {
+	// 	return "", err
+	// }
 
-	var hf hostFile
-	err = toml.Unmarshal(b, &hf)
-	if err != nil {
-		return "", err
-	}
-	if len(hf.Hosts) == 0 {
-		return "", nil
-	}
+	// var hf hostFile
+	// err = toml.Unmarshal(b, &hf)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// if len(hf.Hosts) == 0 {
+	// 	return "", nil
+	// }
 
-	hosts := []string{}
-	parser := tomlu.Parser{}
-	parser.Reset(b)
-	for parser.NextExpression() {
-		err := parser.Error()
-		if err != nil {
-			return "", err
-		}
-		e := parser.Expression()
-		if e.Kind != tomlu.Table {
-			continue
-		}
-		ki := e.Key()
-		if ki.Next() && string(ki.Node().Data) == "host" && ki.Next() && ki.IsLast() {
-			hosts = append(hosts, string(ki.Node().Data))
-		}
-	}
+	// hosts := []string{}
+	// parser := tomlu.Parser{}
+	// parser.Reset(b)
+	// for parser.NextExpression() {
+	// 	err := parser.Error()
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	e := parser.Expression()
+	// 	if e.Kind != tomlu.Table {
+	// 		continue
+	// 	}
+	// 	ki := e.Key()
+	// 	if ki.Next() && string(ki.Node().Data) == "host" && ki.Next() && ki.IsLast() {
+	// 		hosts = append(hosts, string(ki.Node().Data))
+	// 	}
+	// }
 
-	ehs := []string{}
-	for _, h := range hosts {
-		data := hostFile{
-			Hosts: map[string]any{
-				h: hf.Hosts[h],
-			},
-		}
-		b, err := toml.Marshal(data)
-		if err != nil {
-			return "", err
-		}
-		eh := strings.TrimPrefix(string(b), "[host]\n")
-		ehs = append(ehs, eh)
-	}
-	return strings.TrimSpace(strings.Join(ehs, "\n")), nil
+	// ehs := []string{}
+	// for _, h := range hosts {
+	// 	data := hostFile{
+	// 		Hosts: map[string]any{
+	// 			h: hf.Hosts[h],
+	// 		},
+	// 	}
+	// 	b, err := toml.Marshal(data)
+	// 	if err != nil {
+	// 		return "", err
+	// 	}
+	// 	eh := strings.TrimPrefix(string(b), "[host]\n")
+	// 	ehs = append(ehs, eh)
+	// }
+	// return strings.TrimSpace(strings.Join(ehs, "\n")), nil
+	return "", nil
 }
